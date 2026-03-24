@@ -1,0 +1,650 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Money Flow</title>
+    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Sarabun:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --ink: #0d0d0d;
+            --cream: #f5f0e8;
+            --paper: #faf8f4;
+            --gold: #c9a84c;
+            --gold-light: #e8d49e;
+            --green: #2d7a5f;
+            --green-light: #e8f5f0;
+            --red: #c0392b;
+            --red-light: #fdf0ee;
+            --muted: #8a8278;
+            --border: #e0d9ce;
+            --shadow: rgba(13,13,13,0.08);
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'Sarabun', sans-serif;
+            background: var(--cream);
+            min-height: 100vh;
+            padding: 24px 16px 60px;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        /* Background texture */
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background-image: 
+                radial-gradient(ellipse at 20% 10%, rgba(201,168,76,0.06) 0%, transparent 50%),
+                radial-gradient(ellipse at 80% 80%, rgba(45,122,95,0.06) 0%, transparent 50%);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .wrapper {
+            max-width: 480px;
+            margin: 0 auto;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* ── HEADER ── */
+        .header {
+            display: flex;
+            align-items: flex-end;
+            justify-content: space-between;
+            margin-bottom: 28px;
+            padding-bottom: 20px;
+            border-bottom: 1.5px solid var(--border);
+        }
+        .header-left h1 {
+            font-family: 'Syne', sans-serif;
+            font-size: 28px;
+            font-weight: 800;
+            color: var(--ink);
+            letter-spacing: -0.5px;
+            line-height: 1;
+        }
+        .header-left h1 span { color: var(--gold); }
+        .header-left p {
+            font-size: 12px;
+            color: var(--muted);
+            margin-top: 4px;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+        }
+        .header-badge {
+            background: var(--ink);
+            color: var(--gold);
+            font-family: 'Syne', sans-serif;
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: 1.5px;
+            padding: 5px 10px;
+            border-radius: 20px;
+            text-transform: uppercase;
+        }
+
+        /* ── BALANCE CARD ── */
+        .balance-card {
+            background: var(--ink);
+            border-radius: 20px;
+            padding: 28px 28px 24px;
+            margin-bottom: 16px;
+            position: relative;
+            overflow: hidden;
+        }
+        .balance-card::before {
+            content: '฿';
+            position: absolute;
+            right: -10px;
+            top: -20px;
+            font-family: 'Syne', sans-serif;
+            font-size: 120px;
+            font-weight: 800;
+            color: rgba(255,255,255,0.03);
+            pointer-events: none;
+            line-height: 1;
+        }
+        .balance-card::after {
+            content: '';
+            position: absolute;
+            bottom: 0; left: 0; right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, var(--gold), var(--gold-light), var(--gold));
+        }
+        .balance-label {
+            font-size: 11px;
+            color: rgba(255,255,255,0.45);
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            margin-bottom: 8px;
+        }
+        .balance-amount {
+            font-family: 'Syne', sans-serif;
+            font-size: 44px;
+            font-weight: 800;
+            color: white;
+            letter-spacing: -2px;
+            line-height: 1;
+            transition: all 0.3s ease;
+        }
+        .balance-amount.positive { color: #7effd3; }
+        .balance-amount.negative { color: #ff8080; }
+
+        .mini-stats {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+        .mini-card {
+            background: var(--paper);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 16px 18px;
+            position: relative;
+            overflow: hidden;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        .mini-card:hover { transform: translateY(-2px); box-shadow: 0 8px 24px var(--shadow); }
+        .mini-card .mc-label {
+            font-size: 11px;
+            color: var(--muted);
+            letter-spacing: 0.8px;
+            text-transform: uppercase;
+            margin-bottom: 6px;
+        }
+        .mini-card .mc-val {
+            font-family: 'Syne', sans-serif;
+            font-size: 22px;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+        }
+        .mini-card.inc .mc-val { color: var(--green); }
+        .mini-card.exp .mc-val { color: var(--red); }
+        .mini-card .mc-dot {
+            position: absolute;
+            top: 16px; right: 16px;
+            width: 8px; height: 8px;
+            border-radius: 50%;
+        }
+        .mini-card.inc .mc-dot { background: var(--green); }
+        .mini-card.exp .mc-dot { background: var(--red); }
+
+        /* ── FORM ── */
+        .form-card {
+            background: var(--paper);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 22px;
+            margin-bottom: 24px;
+        }
+        .form-title {
+            font-family: 'Syne', sans-serif;
+            font-size: 13px;
+            font-weight: 700;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            color: var(--muted);
+            margin-bottom: 16px;
+        }
+        .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px; }
+        
+        .field-group { display: flex; flex-direction: column; gap: 5px; }
+        .field-group label {
+            font-size: 10px;
+            font-weight: 600;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            color: var(--muted);
+        }
+        
+        input[type="text"], input[type="number"], input[type="date"], select {
+            width: 100%;
+            padding: 11px 14px;
+            background: white;
+            border: 1.5px solid var(--border);
+            border-radius: 10px;
+            font-family: 'Sarabun', sans-serif;
+            font-size: 14px;
+            color: var(--ink);
+            transition: border-color 0.2s, box-shadow 0.2s;
+            appearance: none;
+        }
+        input:focus, select:focus {
+            outline: none;
+            border-color: var(--gold);
+            box-shadow: 0 0 0 3px rgba(201,168,76,0.12);
+        }
+        
+        /* Type Toggle */
+        .type-toggle {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0;
+            background: white;
+            border: 1.5px solid var(--border);
+            border-radius: 10px;
+            overflow: hidden;
+        }
+        .type-toggle label {
+            padding: 11px;
+            text-align: center;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--muted);
+            transition: all 0.2s;
+            user-select: none;
+        }
+        .type-toggle input[type="radio"] { display: none; }
+        .type-toggle input[type="radio"]:checked + label.inc-label {
+            background: var(--green);
+            color: white;
+        }
+        .type-toggle input[type="radio"]:checked + label.exp-label {
+            background: var(--red);
+            color: white;
+        }
+        .type-toggle label:hover { background: var(--cream); }
+
+        .btn-add {
+            width: 100%;
+            padding: 14px;
+            background: var(--ink);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-family: 'Syne', sans-serif;
+            font-size: 14px;
+            font-weight: 700;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            cursor: pointer;
+            margin-top: 14px;
+            position: relative;
+            overflow: hidden;
+            transition: transform 0.15s, box-shadow 0.15s;
+        }
+        .btn-add::after {
+            content: '';
+            position: absolute;
+            bottom: 0; left: 0; right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, var(--gold), var(--gold-light));
+        }
+        .btn-add:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(13,13,13,0.2); }
+        .btn-add:active { transform: translateY(0); }
+
+        /* ── HISTORY ── */
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 14px;
+        }
+        .section-title {
+            font-family: 'Syne', sans-serif;
+            font-size: 15px;
+            font-weight: 700;
+            color: var(--ink);
+        }
+        .section-count {
+            font-size: 11px;
+            color: var(--muted);
+            background: var(--cream);
+            border: 1px solid var(--border);
+            padding: 3px 10px;
+            border-radius: 20px;
+        }
+
+        .tx-list { list-style: none; display: flex; flex-direction: column; gap: 8px; max-height: 320px; overflow-y: auto; padding-right: 2px; }
+        .tx-list::-webkit-scrollbar { width: 4px; }
+        .tx-list::-webkit-scrollbar-track { background: transparent; }
+        .tx-list::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+
+        .tx-item {
+            background: var(--paper);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 14px 16px;
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            animation: slideIn 0.25s ease forwards;
+        }
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(8px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .tx-item:hover { transform: translateY(-1px); box-shadow: 0 6px 20px var(--shadow); }
+
+        .tx-icon {
+            width: 40px; height: 40px;
+            border-radius: 10px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 18px;
+            flex-shrink: 0;
+        }
+        .tx-item.income .tx-icon { background: var(--green-light); }
+        .tx-item.expense .tx-icon { background: var(--red-light); }
+
+        .tx-info { flex: 1; min-width: 0; }
+        .tx-note {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--ink);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .tx-date { font-size: 11px; color: var(--muted); margin-top: 2px; }
+
+        .tx-right { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
+        .tx-amount {
+            font-family: 'Syne', sans-serif;
+            font-size: 16px;
+            font-weight: 700;
+            letter-spacing: -0.3px;
+        }
+        .tx-item.income .tx-amount { color: var(--green); }
+        .tx-item.expense .tx-amount { color: var(--red); }
+
+        .del-btn {
+            width: 28px; height: 28px;
+            background: transparent;
+            border: 1.5px solid var(--border);
+            border-radius: 7px;
+            color: var(--muted);
+            font-size: 13px;
+            cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+            transition: all 0.2s;
+            padding: 0;
+            line-height: 1;
+        }
+        .del-btn:hover { background: var(--red-light); border-color: var(--red); color: var(--red); }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: var(--muted);
+        }
+        .empty-state .empty-icon { font-size: 36px; margin-bottom: 10px; opacity: 0.4; }
+        .empty-state p { font-size: 13px; letter-spacing: 0.3px; }
+
+        /* ── TELEGRAM SETTINGS ── */
+        .tg-card {
+            background: var(--paper);
+            border: 1px dashed var(--border);
+            border-radius: 20px;
+            padding: 20px 22px;
+            margin-top: 24px;
+        }
+        .tg-header {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 14px;
+        }
+        .tg-icon {
+            width: 32px; height: 32px;
+            background: #229ED9;
+            border-radius: 8px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 16px;
+            flex-shrink: 0;
+        }
+        .tg-title {
+            font-family: 'Syne', sans-serif;
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--ink);
+        }
+        .tg-sub { font-size: 11px; color: var(--muted); margin-top: 1px; }
+        .save-ok {
+            margin-left: auto;
+            font-size: 11px;
+            color: var(--green);
+            font-weight: 600;
+            display: none;
+        }
+        .tg-fields { display: flex; flex-direction: column; gap: 8px; }
+        .btn-save {
+            width: 100%;
+            padding: 11px;
+            background: white;
+            border: 1.5px solid var(--border);
+            border-radius: 10px;
+            font-family: 'Syne', sans-serif;
+            font-size: 12px;
+            font-weight: 700;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            color: var(--ink);
+            cursor: pointer;
+            margin-top: 6px;
+            transition: all 0.2s;
+        }
+        .btn-save:hover { background: var(--ink); color: white; border-color: var(--ink); }
+
+        /* divider */
+        .divider {
+            height: 1px;
+            background: var(--border);
+            margin: 24px 0;
+        }
+    </style>
+</head>
+<body>
+<div class="wrapper">
+
+    <!-- Header -->
+    <div class="header">
+        <div class="header-left">
+            <h1>Money<span>Flow</span></h1>
+            <p>บันทึกรายรับ–รายจ่าย</p>
+        </div>
+        <div class="header-badge">Pro</div>
+    </div>
+
+    <!-- Balance Card -->
+    <div class="balance-card">
+        <div class="balance-label">ยอดเงินคงเหลือ</div>
+        <div class="balance-amount" id="balance">฿0.00</div>
+    </div>
+
+    <!-- Mini Stats -->
+    <div class="mini-stats">
+        <div class="mini-card inc">
+            <div class="mc-dot"></div>
+            <div class="mc-label">รายรับรวม</div>
+            <div class="mc-val" id="money-plus">฿0.00</div>
+        </div>
+        <div class="mini-card exp">
+            <div class="mc-dot"></div>
+            <div class="mc-label">รายจ่ายรวม</div>
+            <div class="mc-val" id="money-minus">฿0.00</div>
+        </div>
+    </div>
+
+    <!-- Add Form -->
+    <div class="form-card">
+        <div class="form-title">+ เพิ่มรายการ</div>
+
+        <div class="form-row">
+            <div class="field-group">
+                <label>วันที่</label>
+                <input type="date" id="date">
+            </div>
+            <div class="field-group">
+                <label>ประเภท</label>
+                <div class="type-toggle">
+                    <input type="radio" name="type" id="typeInc" value="income" checked>
+                    <label for="typeInc" class="inc-label">รายรับ +</label>
+                    <input type="radio" name="type" id="typeExp" value="expense">
+                    <label for="typeExp" class="exp-label">รายจ่าย −</label>
+                </div>
+            </div>
+        </div>
+
+        <div class="field-group" style="margin-bottom: 10px;">
+            <label>ชื่อรายการ</label>
+            <input type="text" id="note" placeholder="เช่น เงินเดือน, ค่าอาหาร...">
+        </div>
+        <div class="field-group">
+            <label>จำนวนเงิน (บาท)</label>
+            <input type="number" id="amount" placeholder="0.00" min="1">
+        </div>
+
+        <button class="btn-add" onclick="addTransaction()">บันทึกรายการ</button>
+    </div>
+
+    <!-- History -->
+    <div class="section-header">
+        <span class="section-title">ประวัติรายการ</span>
+        <span class="section-count" id="tx-count">0 รายการ</span>
+    </div>
+    <ul class="tx-list" id="list"></ul>
+
+    <div class="divider"></div>
+
+    <!-- Telegram Settings -->
+    <div class="tg-card">
+        <div class="tg-header">
+            <div class="tg-icon">✈️</div>
+            <div>
+                <div class="tg-title">แจ้งเตือน Telegram</div>
+                <div class="tg-sub">ตั้งค่า Bot Token และ Chat ID</div>
+            </div>
+            <span class="save-ok" id="save-status">✔ บันทึกแล้ว</span>
+        </div>
+        <div class="tg-fields">
+            <input type="text" id="botToken" placeholder="Bot Token (เช่น 123456:ABC...)">
+            <input type="text" id="chatId" placeholder="Chat ID (เช่น 987654321)">
+            <button class="btn-save" onclick="saveTelegramSettings()">💾 บันทึกการตั้งค่า</button>
+        </div>
+    </div>
+
+</div>
+
+<script>
+    document.getElementById('date').valueAsDate = new Date();
+    let transactions = JSON.parse(localStorage.getItem('transactions')) || [];
+
+    // Telegram
+    document.getElementById('botToken').value = localStorage.getItem('tgToken') || '';
+    document.getElementById('chatId').value = localStorage.getItem('tgChatId') || '';
+
+    function saveTelegramSettings() {
+        localStorage.setItem('tgToken', document.getElementById('botToken').value.trim());
+        localStorage.setItem('tgChatId', document.getElementById('chatId').value.trim());
+        const s = document.getElementById('save-status');
+        s.style.display = 'inline';
+        setTimeout(() => { s.style.display = 'none'; }, 3000);
+    }
+
+    function sendToTelegram(type, amount, note, balance) {
+        const token = localStorage.getItem('tgToken');
+        const chat_id = localStorage.getItem('tgChatId');
+        if (!token || !chat_id) return;
+        const icon = type === 'income' ? '🟢 รายรับ' : '🔴 รายจ่าย';
+        const sign = type === 'income' ? '+' : '-';
+        const message = `📝 *บันทึกรายการใหม่*\nประเภท: ${icon}\nรายการ: ${note}\nจำนวนเงิน: ${sign}฿${amount.toFixed(2)}\n────────────────\n💰 *ยอดเงินคงเหลือ: ฿${balance.toFixed(2)}*`;
+        fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ chat_id, text: message, parse_mode: 'Markdown' })
+        }).then(r => { if (!r.ok) alert('ส่ง Telegram ไม่สำเร็จ กรุณาตรวจสอบ Token และ Chat ID'); })
+          .catch(e => console.error(e));
+    }
+
+    const ICONS = {
+        income: '💵',
+        expense: '🧾'
+    };
+
+    function getTypeValue() {
+        return document.querySelector('input[name="type"]:checked').value;
+    }
+
+    function updateDOM() {
+        const list = document.getElementById('list');
+        list.innerHTML = '';
+        let balance = 0, income = 0, expense = 0;
+
+        [...transactions].reverse().forEach(t => {
+            const li = document.createElement('li');
+            li.className = `tx-item ${t.type}`;
+            const sign = t.type === 'income' ? '+' : '−';
+            li.innerHTML = `
+                <div class="tx-icon">${ICONS[t.type]}</div>
+                <div class="tx-info">
+                    <div class="tx-note">${t.note}</div>
+                    <div class="tx-date">${t.date}</div>
+                </div>
+                <div class="tx-right">
+                    <span class="tx-amount">${sign}฿${t.amount.toFixed(2)}</span>
+                    <button class="del-btn" onclick="removeTransaction(${t.id})" title="ลบ">✕</button>
+                </div>
+            `;
+            list.appendChild(li);
+        });
+
+        if (transactions.length === 0) {
+            list.innerHTML = `<div class="empty-state"><div class="empty-icon">📋</div><p>ยังไม่มีรายการ<br>เพิ่มรายการแรกของคุณเลย!</p></div>`;
+        }
+
+        transactions.forEach(t => {
+            if (t.type === 'income') { income += t.amount; balance += t.amount; }
+            else { expense += t.amount; balance -= t.amount; }
+        });
+
+        const balEl = document.getElementById('balance');
+        balEl.textContent = `฿${balance.toFixed(2)}`;
+        balEl.className = 'balance-amount' + (balance > 0 ? ' positive' : balance < 0 ? ' negative' : '');
+
+        document.getElementById('money-plus').textContent = `฿${income.toFixed(2)}`;
+        document.getElementById('money-minus').textContent = `฿${expense.toFixed(2)}`;
+        document.getElementById('tx-count').textContent = `${transactions.length} รายการ`;
+        localStorage.setItem('transactions', JSON.stringify(transactions));
+    }
+
+    function addTransaction() {
+        const date = document.getElementById('date').value;
+        const type = getTypeValue();
+        const note = document.getElementById('note').value.trim();
+        const amount = parseFloat(document.getElementById('amount').value);
+
+        if (!note || isNaN(amount) || amount <= 0) {
+            alert('กรุณากรอกชื่อรายการและจำนวนเงินให้ถูกต้องครับ');
+            return;
+        }
+
+        const t = { id: Date.now(), date, type, note, amount };
+        transactions.push(t);
+        updateDOM();
+
+        let bal = 0;
+        transactions.forEach(x => { bal += x.type === 'income' ? x.amount : -x.amount; });
+        sendToTelegram(type, amount, note, bal);
+
+        document.getElementById('note').value = '';
+        document.getElementById('amount').value = '';
+        document.getElementById('note').focus();
+    }
+
+    function removeTransaction(id) {
+        transactions = transactions.filter(t => t.id !== id);
+        updateDOM();
+    }
+
+    updateDOM();
+</script>
+</body>
+</html>
