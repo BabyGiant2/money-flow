@@ -58,7 +58,8 @@ app.MapDelete("/api/transactions/{id}", async (int id, AppDbContext db) => {
     }
     return Results.NotFound();
 });
-
+app.UseDefaultFiles(); // สั่งให้หาไฟล์ index.html อัตโนมัติ
+app.UseStaticFiles();  // สั่งให้ยอมรับการเปิดไฟล์ใน wwwroot
 app.Run();
 
 // ==========================================

@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("MoneyFlowAPI")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Release")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+15fbf28533d37d0c78630e8dea8b1754a7031d05")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+a2f023ffb44288e660817ea8e82548d7339c6dbf")]
 [assembly: System.Reflection.AssemblyProductAttribute("MoneyFlowAPI")]
 [assembly: System.Reflection.AssemblyTitleAttribute("MoneyFlowAPI")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
